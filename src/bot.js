@@ -36,12 +36,11 @@ bot.on("text", async (msg) => {
     await adminPanel(bot, msg);
 
   } else if (text == "Usta" || steep[2] == 'master') {
-    await changeSteep(user, "choose-service");
+
     await masterRegister(bot,msg)
 
   } else if (text == "Mijoz" || steep[1] == 'client') {
 
-    await changeSteep(user, "client");
     await customerRegister(bot, msg)
 
   } 
@@ -106,13 +105,12 @@ bot.on("callback_query", async (msg) => {
     });
   } else if (st == 'choose-service'){
     await changeSteep(user, "master");
-    await prisma.masters.create({data: {user_id: chat_id, service_id: data.split('=')[1]}})
+    let newMaster = await prisma.masters.create({data: {user_id: chat_id, service_id: +data}})
+    bot.deleteMessage(chat_id, msgId)
     bot.sendMessage(chat_id, "Ismingizni kiriging", {
         reply_markup: {
-            remove_keyboard: {
-                resize_keyboard: true,
-                keyboard: [[{text:"❌ Bekor qilish"}]]
-            }
+            resize_keyboard: true,
+            keyboard: [[{text:"❌ Bekor qilish"}]]
         } 
     })
   }
