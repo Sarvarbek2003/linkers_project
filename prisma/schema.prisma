@@ -21,7 +21,7 @@ model users {
 }
 
 model masters {
-  id                  Int       @id @default(autoincrement())
+  id                  Int     @id @default(autoincrement())
   user_id             BigInt?
   name                String?
   phone_number        String?
@@ -31,14 +31,14 @@ model masters {
   landmark            String?
   longtitude          String?
   latitude            String?
-  start_time          DateTime?
-  end_time            DateTime?
+  start_time          String?
+  end_time            String?
   time_per_cutomer    String?
   rating_count        Int?
   rating              Int?
-  is_banned           Boolean   @default(false)
-  ban_expiration_time DateTime?
-  is_verified         Boolean   @default(false)
+  is_banned           Boolean @default(false)
+  ban_expiration_time BigInt?
+  is_verified         Boolean @default(false)
 }
 
 model orders {
@@ -48,4 +48,9 @@ model orders {
   status      String?
   time        BigInt?
   rating      Int?
+}
+
+model services {
+  id           Int     @id @default(autoincrement())
+  service_name String?
 }

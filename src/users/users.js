@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { changeSteep, checkUser } from "../utils.js";
+import { changeSteep, checkUser, selectService } from "../utils.js";
 
 const prisma = new PrismaClient();
 export const customerRegister = async (bot, msg) => {
@@ -45,16 +45,13 @@ export const customerRegister = async (bot, msg) => {
         },
       }
     );
-  } else if (st === "client_enter_phone_number") {
-    await bot.sendMessage(chat_id, {
+  } else if (st === "client_enter_phone_number" && text === "Xizmatlar") {
+    const keyboards = await selectService();
+    // throw new Error("ER1")
+    await bot.sendMessage(chat_id, "Quyidagi servicelardan birini tanlang!", {
       reply_markup: {
-        resize_keyboard: true,
-        keyboard: [
-          [{ text: "Xizmatlar" }, { text: "Tanlangan xizmatlar" }],
-          [{ text: "Malumotlarni o'zgartirish" }],
-        ],
+        inline_keyboard: keyboards,
       },
     });
   }
-  console.log(st);
 };
