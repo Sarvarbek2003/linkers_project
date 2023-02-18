@@ -5,6 +5,7 @@ const selectService = async (page = 1) => {
     try {
       let services = await prisma.services.findMany();
       services = services.slice(+page * 10 - 10, 10 * +page);
+      if(!services.length) return [[]]
       let array = [];
       let arr = [];
       let count = 2;
@@ -41,7 +42,7 @@ try {
     let services = await prisma.masters.findMany();
     services = services.slice(+page * 5 - 5, 5 * +page);
     let array = [];
-
+    if(!services.length) return [[]]
     services.forEach((el) => {
     array.push([
         {
@@ -94,7 +95,7 @@ try {
     let st = us.steep[us.steep.length -1]
 
     let steeps = user.steep;
-    if (st != steep) steepHome ? steeps = [steep] : steeps.push(steep);
+    if (st != steep) steepHome ? steeps = typeof steep == 'object' ? steep : [steep] : steeps.push(steep);
     else return
 
     await prisma.users.updateMany({

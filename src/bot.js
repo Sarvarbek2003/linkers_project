@@ -39,7 +39,7 @@ bot.on("text", async (msg) => {
       }
     );
   } else if ((text == "/admin" && user.is_admin) || steep[1] == "admin") {
-    if (text == 'admin') {
+    if (text == '/admin') {
       await changeSteep(user, 'home', true)
     } 
     await adminPanel(bot, msg);
@@ -102,8 +102,9 @@ bot.on("callback_query", async (msg) => {
 
   if (data.split("=")[0] == "prev") {
     if (data.split("=")[1] == 0) {
-      return bot.answerCallbackQuery(msg.id, { text: "Бу охирги саҳифа" });
+      return bot.answerCallbackQuery(msg.id, { text: "Bu ohirgi sahifa!" });
     }
+
     let keyboard = await selectService(data.split("=")[1]);
 
     bot.editMessageText("Qaysi turdagi xizmatni ko`rsatasiz", {
@@ -114,6 +115,7 @@ bot.on("callback_query", async (msg) => {
       },
     });
   } else if (data.split("=")[0] == "next") {
+
     let keyboard = await selectService(data.split("=")[1]);
     if (keyboard[0].length == 0) {
       return bot.answerCallbackQuery(msg.id, { text: "Bu ohirgi sahifa!" });
@@ -127,7 +129,9 @@ bot.on("callback_query", async (msg) => {
     });
   } else if (data.split("=")[0] == "next_m") {
     let keyboard = await selectMaster(data.split("=")[1]);
-
+    if (keyboard[0].length == 0) {
+      return bot.answerCallbackQuery(msg.id, { text: "Bu ohirgi sahifa!" });
+    }
     bot.editMessageText("Ustalar ro'yhati", {
       chat_id,
       message_id: msgId,
@@ -137,7 +141,7 @@ bot.on("callback_query", async (msg) => {
     });
   } else if (data.split("=")[0] == "prev_m") {
     if (data.split("=")[1] == 0) {
-      return bot.answerCallbackQuery(msg.id, { text: "Бу охирги саҳифа" });
+      return bot.answerCallbackQuery(msg.id, { text: "Bu ohirgi sahifa!" });
     }
     let keyboard = await selectMaster(data.split("=")[1]);
 
@@ -158,6 +162,8 @@ bot.on("callback_query", async (msg) => {
         keyboard: [[{ text: "❌ Bekor qilish" }]],
       },
     });
+  } else if (steep[1] == 'admin'){
+    adminPanel(bot, msg)
   }
 });
 
