@@ -12,12 +12,12 @@ import adminPanel from "./admin/admin.js";
 
 import { selectService, selectMaster, checkUser, changeSteep} from "./utils.js";
 import { customerRegister } from "./users/users.js";
+import masterRegister from "./masters/masters.js";
 
 bot.on("text", async (msg) => {
   const text = msg.text;
   const chat_id = msg.from.id;
   const user = await checkUser(msg);
-  console.log(user);
   const steep = user.steep;
   const st = steep[steep?.length - 1];
 
@@ -35,24 +35,16 @@ bot.on("text", async (msg) => {
     await changeSteep(user, "admin",true);
     await adminPanel(bot, msg);
 
-  } else if (text == "Usta") {
-
+  } else if (text == "Usta" || steep[2] == 'master') {
     await changeSteep(user, "choose-service");
-    let keyboard = await selectService();
-    bot.sendMessage(chat_id, "Qaysi turdagi xizmatni ko`rsatasiz", {
-      reply_markup: {
-        inline_keyboard: keyboard,
-      },
-    });
+    await masterRegister(bot,msg)
 
   } else if (text == "Mijoz" || steep[1] == 'client') {
 
     await changeSteep(user, "client");
     await customerRegister(bot, msg)
 
-  } else if(st == 'choose-service'){
-    
-  }
+  } 
 });
 
 
@@ -61,6 +53,9 @@ bot.on("callback_query", async (msg) => {
   const msgId = msg.message.message_id;
 
   const user = await checkUser(msg);
+  const steep = user.steep;
+  const st = steep[steep?.length - 1];
+
   const data = msg.data;
 
   if (data.split("=")[0] == "prev") {
@@ -110,8 +105,16 @@ bot.on("callback_query", async (msg) => {
       },
     });
   } else if (st == 'choose-service'){
-    await prisma.masters.create({data: {user_id: chat_id, service_id: data.split('=')}})
-    bot.sendMessage(chat_id, "Ismingizni kiriging")
+    await changeSteep(user, "master");
+    await prisma.masters.create({data: {user_id: chat_id, service_id: data.split('=')[1]}})
+    bot.sendMessage(chat_id, "Ismingizni kiriging", {
+        reply_markup: {
+            remove_keyboard: {
+                resize_keyboard: true,
+                keyboard: [[{text:"❌ Bekor qilish"}]]
+            }
+        } 
+    })
   }
 });
 

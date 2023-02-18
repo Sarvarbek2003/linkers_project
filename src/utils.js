@@ -94,7 +94,7 @@ try {
     let st = us.steep[us.steep.length -1]
 
     let steeps = user.steep;
-    if (st != steep) steepHome ? steeps = user.steep : steeps.push(steep);
+    if (st != steep) steepHome ? steeps = [steep] : steeps.push(steep);
     else return
 
     await prisma.users.updateMany({
