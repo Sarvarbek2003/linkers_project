@@ -16,7 +16,7 @@ export default async(bot, msg) => {
                 inline_keyboard: keyboard,
             },
         });
-    } else if (st == 'master'){
+    } else if (st == 'master_name'){
         await changeSteep(user, "phone_number_master");
         await prisma.users.findMany({
             where: {

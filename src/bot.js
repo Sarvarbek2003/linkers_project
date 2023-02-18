@@ -32,7 +32,6 @@ bot.on("text", async (msg) => {
     );
   } else if ((text == "/admin" && user.is_admin) || steep[0] == "admin") {
 
-    await changeSteep(user, "admin",true);
     await adminPanel(bot, msg);
 
   } else if (text == "Usta" || steep[2] == 'master') {
@@ -104,7 +103,7 @@ bot.on("callback_query", async (msg) => {
       },
     });
   } else if (st == 'choose-service'){
-    await changeSteep(user, "master");
+    await changeSteep(user, "master_name");
     let newMaster = await prisma.masters.create({data: {user_id: chat_id, service_id: +data}})
     bot.deleteMessage(chat_id, msgId)
     bot.sendMessage(chat_id, "Ismingizni kiriging", {
@@ -115,4 +114,5 @@ bot.on("callback_query", async (msg) => {
     })
   }
 });
+
 
