@@ -56,4 +56,5 @@ export const customerRegister = async (bot, msg) => {
       },
     });
   }
+  console.log(st);
 };
