@@ -1,17 +1,24 @@
 const starthome = {
-    resize_keyboard: true,
-    keyboard: [[{ text: "🧑‍🚒 Usta" }, { text: "👤 Mijoz" }]],
-}
+  resize_keyboard: true,
+  keyboard: [[{ text: '🧑‍🚒 Usta' }, { text: '👤 Mijoz' }]],
+};
 
 const nextBtn = {
   resize_keyboard: true,
-  keyboard: [[{text:"O`tkazish ⏭️"}],[{text:"❌ Bekor qilish"}]]
-}
+  keyboard: [[{ text: 'O`tkazish ⏭️' }], [{ text: '❌ Bekor qilish' }]],
+};
 
 const cancel = {
   resize_keyboard: true,
-  keyboard: [[{ text: "❌ Bekor qilish" }]],
-}
+  keyboard: [[{ text: '❌ Bekor qilish' }]],
+};
+
+const adminMenuKeyboard = {
+  resize_keyboard: true,
+  keyboard: [
+    [{ text: 'Xizmatlar ⚙️' }, { text: 'Ustalar 👨🏻‍🔧' }, { text: 'Mijozlar 👥' }],
+  ],
+};
 
 const homeMaster = {
   resize_keyboard: true,
@@ -22,6 +29,7 @@ const homeMaster = {
 } 
 
 export {
+  adminMenuKeyboard,
   homeMaster,
   starthome,
   nextBtn,
