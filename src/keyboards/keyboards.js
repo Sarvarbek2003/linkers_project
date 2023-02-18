@@ -7,7 +7,4 @@ export const keyboards = {
   back: Markup.keyboard([["Ortga 🔙"]])
     .oneTime()
     .resize(),
-  on_masters: Markup.keyboard([["Usta Qo'shish 🆕", "Ustalar ro'yhati 📃"], ["Ortga 🔙"]])
-      .oneTime()
-      .resize(),
 };

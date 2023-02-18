@@ -26,18 +26,11 @@ export default async (ctx) => {
   }
 };
 
-async function showMasters(ctx) {
-  try {
-    const masters = await prisma.masters.findMany();
-    ctx.reply("Ustalar ro'yhati:\n");
-  } catch (e) {
-    console.log(e);
-  }
-}
+
 
 export async function onMaster(ctx) {
   console.log("Kirdi")
-  await ctx.reply("Ustalar bo'limi", keyboards.on_masters);
+  await ctx.reply("Ustalar ro'yhati:", keyboards.back);
 }
 
 
