@@ -12,5 +12,5 @@ async function isAdmin (user_id)  {
   } catch (e) {
     console.log("ERROR: ", e);
   }
-};
+}
 
