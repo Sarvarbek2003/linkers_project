@@ -18,7 +18,7 @@ app.on('text', async (ctx) => {
 
     if ((text == '/admin' && user.is_admin) || steep[1] == 'admin') {
         await changeSteep(user, 'admin')
-
+        await adminPanel(ctx)
     } 
 })
 
@@ -59,6 +59,10 @@ const changeSteep =async (user, steep) => {
     } catch (error) {
         return 0
     }
+}
+
+export {
+    changeSteep
 }
 app.launch();
 
