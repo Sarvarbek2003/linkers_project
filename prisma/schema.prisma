@@ -16,3 +16,13 @@ model users {
   
 
 }
+
+model orders {
+  id Int @id @default(autoincrement())
+  customer_id Int?
+  master_id Int?
+  status String?
+  time BigInt?
+  rating Int?
+
+}
