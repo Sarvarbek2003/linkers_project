@@ -13,6 +13,11 @@ datasource db {
 model users {
   id      Int     @id @default(autoincrement())
   user_id BigInt?
+  first_name String?
+  steep Json?
+  phone_number String?
+  is_customer Boolean @default(true)
+  is_admin Boolean @default(false)
 }
 
 model masters {
