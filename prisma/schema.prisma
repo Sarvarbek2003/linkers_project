@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -21,7 +18,7 @@ model users {
 }
 
 model masters {
-  id                  Int       @id @default(autoincrement())
+  id                  Int     @id @default(autoincrement())
   user_id             BigInt?
   name                String?
   phone_number        String?
@@ -31,21 +28,26 @@ model masters {
   landmark            String?
   longtitude          String?
   latitude            String?
-  start_time          DateTime?
-  end_time            DateTime?
+  start_time          String?
+  end_time            String?
   time_per_cutomer    String?
   rating_count        Int?
   rating              Int?
-  is_banned           Boolean   @default(false)
-  ban_expiration_time DateTime?
-  is_verified         Boolean   @default(false)
+  is_banned           Boolean @default(false)
+  is_verified         Boolean @default(false)
+  ban_expiration_time BigInt?
 }
 
 model orders {
   id          Int     @id @default(autoincrement())
   customer_id Int?
   master_id   Int?
+  rating      Int?
   status      String?
   time        BigInt?
-  rating      Int?
+}
+
+model services {
+  id           Int     @id @default(autoincrement())
+  service_name String?
 }

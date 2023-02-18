@@ -38,10 +38,12 @@ bot.on("text", async (msg) => {
         },
       }
     );
-  } else if ((text == "/admin" && user.is_admin) || steep[0] == "admin") {
-
+  } else if ((text == "/admin" && user.is_admin) || steep[1] == "admin") {
+    if (text == 'admin') {
+      await changeSteep(user, 'home', true)
+    } 
     await adminPanel(bot, msg);
-  } else if (text == "Usta" || steep[2] == "master") {
+  } else if (text == "Usta" || steep[1] == "choose-service") {
     await masterRegister(bot, msg);
   } else if (text == "Mijoz" || steep[1] == "client") {
     await customerRegister(bot, msg);
@@ -54,9 +56,9 @@ bot.on("contact", async (msg) => {
   const user = await checkUser(msg);
   const steep = user.steep;
   const st = steep[steep?.length - 1];
+  const phone_number = msg.contact.phone_number;
   // console.log(st);
   if (st === "client_enter_name") {
-    const phone_number = msg.contact.phone_number;
     await prisma.users.updateMany({
       where: { user_id: chat_id },
       data: { phone_number: phone_number },
@@ -72,6 +74,19 @@ bot.on("contact", async (msg) => {
         ],
       },
     });
+  } else if(st == 'phone_number_master'){
+    
+      await prisma.users.updateMany({
+        where: { user_id: chat_id },
+        data: { phone_number: phone_number },
+      });
+      bot.sendMessage(chat_id, "Ustaxona nomini kiriting (Bu majburiy emas)", {
+        reply_markup:{
+            resize_keyboard: true,
+            keyboard: [[{text:"O`tkazish ⏭️"}],[{text:"❌ Bekor qilish"}]]
+        }
+      })
+      await changeSteep(user, "workshop_name");
   }
 });
 
@@ -144,4 +159,17 @@ bot.on("callback_query", async (msg) => {
   }
 });
 
+bot.on('location',async msg => {
+  const chat_id = msg.from.id;
+  const { latitude,  longitude } = msg.location
+  const user = await checkUser(msg);
+  const steep = user.steep;
+  const st = steep[steep?.length - 1];
+  if (st == 'location_master') {
+    await prisma.masters.updateMany({where:{user_id: chat_id},data:{latitude: `${latitude}`,longtitude:`${longitude}`}})
+    bot.sendMessage(chat_id, "Ishni boshlanish vaqtini kiriting\nNamuna: 09:00")
+    await changeSteep(user, 'start_time')
+  }
+
+})
 

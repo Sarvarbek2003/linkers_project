@@ -98,12 +98,12 @@ try {
     else return
 
     await prisma.users.updateMany({
-    where: {
-        user_id: user.user_id,
-    },
-    data: {
-        steep: steeps,
-    },
+        where: {
+            user_id: user.user_id,
+        },
+        data: {
+            steep: steeps,
+        },
     });
 } catch (error) {
     return 0;
