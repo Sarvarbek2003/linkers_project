@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prisma/client": "^4.10.1",
     "prisma": "^4.10.1",
     "telegraf": "^4.11.2"
   }
