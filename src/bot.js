@@ -65,7 +65,7 @@ bot.on("contact", async (msg) => {
     });
 
     await changeSteep(user, "client_enter_phone_number");
-    await bot.sendMessage(chat_id, "Quyidagi xizmatlardan birini tanlang👇",{
+    await bot.sendMessage(chat_id, "Quyidagi xizmatlardan birini tanlang👇", {
       reply_markup: {
         resize_keyboard: true,
         keyboard: [
@@ -115,7 +115,9 @@ bot.on("callback_query", async (msg) => {
     });
   } else if (data.split("=")[0] == "next") {
     let keyboard = await selectService(data.split("=")[1]);
-
+    if (keyboard[0].length == 0) {
+      return bot.answerCallbackQuery(msg.id, { text: "Bu ohirgi sahifa!" });
+    }
     bot.editMessageText("Qaysi turdagi xizmatni ko`rsatasiz", {
       chat_id,
       message_id: msgId,
