@@ -11,10 +11,29 @@ datasource db {
 }
 
 model users {
-  id Int @id @default(autoincrement())
+  id      Int     @id @default(autoincrement())
   user_id BigInt?
-  
+}
 
+model masters {
+  id                  Int       @id @default(autoincrement())
+  user_id             BigInt?
+  name                String?
+  phone_number        String?
+  service_id          Int?
+  workshop_name       String?
+  address             String?
+  landmark            String?
+  longtitude          String?
+  latitude            String?
+  start_time          DateTime?
+  end_time            DateTime?
+  time_per_cutomer    String?
+  rating_count        Int?
+  rating              Int?
+  is_banned           Boolean   @default(false)
+  ban_expiration_time DateTime?
+  is_verified         Boolean   @default(false)
 }
 
 model orders {
