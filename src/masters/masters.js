@@ -1,5 +1,6 @@
 import { changeSteep, checkUser, selectService } from "../utils.js";
 import { PrismaClient } from "@prisma/client";
+import { cancel, nextBtn, starthome } from "../keyboards/keyboards.js";
 
 const prisma = new PrismaClient();
 export default async(bot, msg) => {
@@ -9,7 +10,7 @@ export default async(bot, msg) => {
     const steep = user.steep;
     const st = steep[steep?.length - 1];
     let msgId = msg?.message?.message_id
-    
+
     if(st == 'home') {
         await changeSteep(user, "choose-service");
         let keyboard = await selectService();
@@ -43,20 +44,14 @@ export default async(bot, msg) => {
         if(text != "O`tkazish ⏭️")  await prisma.masters.updateMany({where:{user_id:chat_id}, data:{workshop_name: text}})
         bot.sendMessage(chat_id, "📍 *Ustaxona manzilini kiriting (bu majburiy emas)*",{
             parse_mode:'Markdown',
-            reply_markup:{
-                resize_keyboard: true,
-                keyboard: [[{text:"O`tkazish ⏭️"}],[{text:"❌ Bekor qilish"}]]
-            }
+            reply_markup:nextBtn
         })
         await changeSteep(user, "address");
     } else if(st == 'address'){
         if(text != "O`tkazish ⏭️") await prisma.masters.updateMany({where:{user_id:chat_id}, data:{address: text}})
         bot.sendMessage(chat_id, "🚩 *Mo'ljalni yozing (bu majburiy emas)*",{
             parse_mode:'Markdown',
-            reply_markup:{
-                resize_keyboard: true,
-                keyboard: [[{text:"O`tkazish ⏭️"}],[{text:"❌ Bekor qilish"}]]
-            }
+            reply_markup:nextBtn
         })
         await changeSteep(user, "landmark");
     } else if(st == 'landmark'){
@@ -76,10 +71,7 @@ export default async(bot, msg) => {
         await prisma.masters.updateMany({where:{user_id:chat_id}, data:{start_time: text}})
         bot.sendMessage(chat_id, "⏱ *Ishni yakunlash vaqtini kiriting*\n_Namuna: 18:00_", {
             parse_mode:'Markdown',
-            reply_markup: {
-                resize_keyboard: true,
-                keyboard:[[{text:"❌ Bekor qilish"}]]
-            }
+            reply_markup: cancel
         })
         await changeSteep(user, 'end_time')
     } else if(st == 'end_time'){
@@ -104,7 +96,7 @@ export default async(bot, msg) => {
         `⏰ *Ish boshlanish vaqti* – ${readyMaster.start_time}\n`+
         `🕰 *Ishning tugash vaqti* – ${readyMaster.end_time}\n`+
         `🧭 *Har bir mijoz uchun o'rtacha\n`+
-        `sariflangan vaqt* – ${readyMaster.time_per_cutomer}`
+        `sariflaydigan vaqti* – ${readyMaster.time_per_cutomer}`
 
         bot.sendMessage(chat_id, txt, {
             parse_mode:"Markdown",
@@ -118,7 +110,31 @@ export default async(bot, msg) => {
             }
         })
     } else if (text.split('=')[0] == 'confirm_master' && st == 'confirm_master'){
-        let id = text.split('=')[0]
+        let id = text.split('=')[1]
+        let readyMaster = await prisma.masters.findFirst({where: {user_id: chat_id}})
+        let txt = 
+        `👤 *Ismi* – ${readyMaster.name}\n`+
+        `📞 *Telefon raqami* – ${user.phone_number}\n`+
+        `🏠 *Ustaxona nomi* – ${readyMaster.workshop_name ? readyMaster.workshop_name : ''}\n`+
+        `📍 *Manzili* – ${readyMaster.address ? readyMaster.address : ''}\n`+
+        `🚩 *Mo'ljal* – ${readyMaster.landmark ? readyMaster.landmark : ''}\n`+
+        `🏁 *Locatsyasi* – 📍\n`+
+        `⏰ *Ish boshlanish vaqti* – ${readyMaster.start_time}\n`+
+        `🕰 *Ishning tugash vaqti* – ${readyMaster.end_time}\n`+
+        `🧭 *Har bir mijoz uchun o'rtacha\n`+
+        `sariflaydigan vaqti* – ${readyMaster.time_per_cutomer}`
+
+        bot.sendMessage('-1001898967264', txt, {
+            parse_mode:"Markdown",
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        {text: "✅ Tasdiqlash", callback_data: 'confirm_admin='+readyMaster.id},
+                        {text: "❌ Bekor qilish", callback_data: 'notconfirm_admin='+readyMaster.id}
+                    ]
+                ]
+            }
+        })
         bot.editMessageText( "*✅ Arizangiz adminga yuborildi. Tasdiqlanishini kuting*", {
             chat_id,
             message_id: msgId,
@@ -130,6 +146,15 @@ export default async(bot, msg) => {
                 ]
             }
         })
-    }
+    } else if (text.split('=')[0] == 'notconfirm_master' && st == 'confirm_master'){
+        let id = text.split('=')[1]
+        await prisma.masters.delete({ where:{ id: +id } })
+        bot.editMessageText( "*❌ Arizangiz bekor qilindi*", {
+            chat_id,
+            message_id: msgId,
+            parse_mode: "Markdown",
+            reply_markup: starthome
+        })
+    } 
    
 }

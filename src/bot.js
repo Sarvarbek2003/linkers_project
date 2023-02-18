@@ -18,24 +18,23 @@ import {
 } from "./utils.js";
 import { customerRegister } from "./users/users.js";
 import masterRegister from "./masters/masters.js";
+import { cancel, nextBtn, starthome } from "./keyboards/keyboards.js";
 
 bot.on("text", async (msg) => {
   const text = msg.text;
   const chat_id = msg.from.id;
   const user = await checkUser(msg);
-  const steep = user.steep;
-  const st = steep[steep?.length - 1];
-
+  console.log(user);
+  const steep = user?.steep || [];
+  const st = steep[(steep?.length || 1) - 1];
+  console.log(msg);
   if (text == "/start") {
     await changeSteep(user, "home", true);
     bot.sendMessage(
       chat_id,
       "Assalomualekum MAISHIY XIZMATLAR uchun yartilgan botimizga hush kelibsiz\nKim bo'lib kirmoqchisiz",
       {
-        reply_markup: {
-          resize_keyboard: true,
-          keyboard: [[{ text: "Usta" }, { text: "Mijoz" }]],
-        },
+        reply_markup: starthome
       }
     );
   } else if ((text == "/admin" && user.is_admin) || steep[1] == "admin") {
@@ -43,9 +42,9 @@ bot.on("text", async (msg) => {
       await changeSteep(user, 'home', true)
     } 
     await adminPanel(bot, msg);
-  } else if (text == "Usta" || steep[1] == "choose-service") {
+  } else if (text == "🧑‍🚒 Usta" || steep[1] == "choose-service") {
     await masterRegister(bot, msg);
-  } else if (text == "Mijoz" || steep[1] == "client") {
+  } else if (text == "👤 Mijoz" || steep[1] == "client") {
     await customerRegister(bot, msg);
   }
 });
@@ -54,8 +53,8 @@ bot.on("contact", async (msg) => {
   const text = msg.text;
   const chat_id = msg.from.id;
   const user = await checkUser(msg);
-  const steep = user.steep;
-  const st = steep[steep?.length - 1];
+  const steep = user?.steep || [];
+  const st = steep[(steep?.length || 1) - 1];
   const phone_number = msg.contact.phone_number;
   // console.log(st);
   if (st === "client_enter_name") {
@@ -78,11 +77,9 @@ bot.on("contact", async (msg) => {
       await prisma.users.updateMany({ where: { user_id: chat_id },data: { phone_number: phone_number }});
       await prisma.masters.updateMany({where:{user_id:chat_id}, data:{phone_number: phone_number}})
 
-      bot.sendMessage(chat_id, "Ustaxona nomini kiriting (Bu majburiy emas)", {
-        reply_markup:{
-            resize_keyboard: true,
-            keyboard: [[{text:"O`tkazish ⏭️"}],[{text:"❌ Bekor qilish"}]]
-        }
+      bot.sendMessage(chat_id, "*📋 Ustaxona nomini kiriting (Bu majburiy emas)*", {
+        parse_mode: 'Markdown',
+        reply_markup:nextBtn
       })
       await changeSteep(user, "workshop_name");
   }
@@ -93,8 +90,8 @@ bot.on("callback_query", async (msg) => {
   const msgId = msg.message.message_id;
 
   const user = await checkUser(msg);
-  const steep = user.steep;
-  const st = steep[steep?.length - 1];
+  const steep = user?.steep || [];
+  const st = steep[(steep?.length || 1) - 1];
 
   const data = msg.data;
 
@@ -154,11 +151,9 @@ bot.on("callback_query", async (msg) => {
     await changeSteep(user, "master_name");
     let newMaster = await prisma.masters.create({data: {user_id: chat_id, service_id: +data}})
     bot.deleteMessage(chat_id, msgId)
-    bot.sendMessage(chat_id, "Ismingizni kiriging", {
-      reply_markup: {
-        resize_keyboard: true,
-        keyboard: [[{ text: "❌ Bekor qilish" }]],
-      },
+    bot.sendMessage(chat_id, "🖌 *Ismingizni kiriging*", {
+      parse_mode: 'Markdown', 
+      reply_markup: cancel
     });
   } else if (steep[1] == 'admin'){
     adminPanel(bot, msg)
@@ -167,19 +162,17 @@ bot.on("callback_query", async (msg) => {
   }
 });
 
-bot.on('location',async msg => {
+bot.on('location', async msg => {
   const chat_id = msg.from.id;
   const { latitude,  longitude } = msg.location
   const user = await checkUser(msg);
-  const steep = user.steep;
-  const st = steep[steep?.length - 1];
+  const steep = user?.steep || [];
+  const st = steep[(steep?.length || 1) - 1];
   if (st == 'location_master') {
     await prisma.masters.updateMany({where:{user_id: chat_id},data:{latitude: `${latitude}`,longtitude:`${longitude}`}})
-    bot.sendMessage(chat_id, "⏰ *Ishni boshlanish vaqtini kiriting\n_Namuna: 09:00_", {
-      reply_markup:{
-        resize_keyboard: true,
-        keyboard: [[{text: '❌ Bekor qilish'}]]
-      }
+    bot.sendMessage(chat_id, "⏰ *Ishni boshlanish vaqtini kiriting*\n_Namuna: 09:00_", {
+      parse_mode: "Markdown",
+      reply_markup: cancel
     })
     await changeSteep(user, 'start_time')
   }

@@ -1,10 +1,20 @@
-import { Markup } from "telegraf";
+const starthome = {
+    resize_keyboard: true,
+    keyboard: [[{ text: "🧑‍🚒 Usta" }, { text: "👤 Mijoz" }]],
+}
 
-export const keyboards = {
-  adminHome: Markup.keyboard([["Xizmatlar ⚙️", "Ustalar 👨🏻‍🔧", "Mijozlar 👥"]])
-    .oneTime()
-    .resize(),
-  back: Markup.keyboard([["Ortga 🔙"]])
-    .oneTime()
-    .resize(),
-};
+const nextBtn = {
+  resize_keyboard: true,
+  keyboard: [[{text:"O`tkazish ⏭️"}],[{text:"❌ Bekor qilish"}]]
+}
+
+const cancel = {
+  resize_keyboard: true,
+  keyboard: [[{ text: "❌ Bekor qilish" }]],
+}
+
+export {
+  starthome,
+  nextBtn,
+  cancel
+}

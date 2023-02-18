@@ -85,6 +85,7 @@ try {
     return user;
     }
 } catch (error) {
+    console.log(error);
     return 0;
 }
 };
