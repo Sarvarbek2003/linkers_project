@@ -1,85 +1,109 @@
-import { Telegraf } from 'telegraf'
+import TelegramBot from 'node-telegram-bot-api'
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
-const app = new Telegraf('5924672133:AAFr2B8uMN03TkqqTeiuq-kXYAkSdgCWpXo')
+
+const bot = new TelegramBot('5924672133:AAFvfTZDuhB94GWi_rQkA0RTccnpvWxa1RI', {polling:true})
 
 import adminPanel from './admin/admin.js'
 
-app.command('start', async ctx => {
-    await changeSteep(user, 'admin')
-    await adminPanel(ctx)
 
-    bot.sendMessage(chat_id, "Assalomualekum xi MAISHIY XIZMATLAR uchun yartilgan botimizga hush kelibsiz\nKim bo'lib kirmoqchisiz",{
-        reply_markup:{
-            resize_keyboard: true,
-            keyboard:[
-                [{text: "Usta"}, {text:"Mijoz"}]
-            ]
-        }
-    })
-})
-
-app.hears('Usta', async ctx => {
-    const bot = ctx.telegram
-    const msg = ctx.message    
-    const chat_id = msg.from.id
-
-    const user = await checkUser(msg)
-    await changeSteep(user, 'choose-service')
-
-    let keyboard = await selectService()
-    console.log('keyboard31', keyboard);
-    bot.sendMessage(chat_id, "Qaysi turdagi xizmatni ko`rsatasiz",{
-        reply_markup: {
-            inline_keyboard: keyboard
-        }
-    })
-})
-
-app.hears('Mijoz', ctx => {
-    
-})
-
-
-app.on('text', async (ctx) => {
-    const bot = ctx.telegram
-    const msg = ctx.message    
-
+bot.on('text', async (msg) => {
     const text = msg.text
     const chat_id = msg.from.id
     const user = await checkUser(msg)
     const steep = user.steep
     const st = steep[steep.length-1]
 
+    if(text == '/start'){
+        bot.sendMessage(chat_id, "Assalomualekum MAISHIY XIZMATLAR uchun yartilgan botimizga hush kelibsiz\nKim bo'lib kirmoqchisiz",{
+            reply_markup:{
+                resize_keyboard: true,
+                keyboard:[
+                    [{text: "Usta"}, {text:"Mijoz"}]
+                ]
+            }
+        })
+    }
+    else if ((text == '/admin' && user.is_admin ) || steep[0] == 'admin'){
+        await changeSteep(user, 'admin')
+        await adminPanel(bot, msg)
+    }
+    else if(text == 'Usta') {
+        await changeSteep(user, 'choose-service')
+        let keyboard = await selectService()
+        bot.sendMessage(chat_id, "Qaysi turdagi xizmatni ko`rsatasiz",{
+            reply_markup: {
+                inline_keyboard: keyboard
+            }
+        })
+    } else if (text == "Mijoz"){
+        let keyboard = await selectMaster()
+        bot.sendMessage(chat_id, "Ustalar ro`yhati",{
+            reply_markup: {
+                inline_keyboard: keyboard
+            }
+        })
+    }
+
 })
 
-app.on('callback_query',async ctx => {
-    const bot = ctx.telegram
-    const msg = ctx.update 
-    const chat_id = msg.callback_query.from.id
-    const msgId = msg.callback_query.message.message_id
-    const user = await checkUser(msg.callback_query)
-    console.log('user', msg);
-    const data = msg.callback_query.data
+bot.on('callback_query',async msg => {
+
+    const chat_id = msg.from.id
+    const msgId = msg.message.message_id
+    
+    const user = await checkUser(msg)
+    const data = msg.data
 
     if(data.split('=')[0]=='prev'){
         if (data.split('=')[1] == 0) {
-            return bot.answerCbQuery(msg.callback_query.id, "Bu oxirgi saxifa")
+            return bot.answerCallbackQuery(msg.id,{text: "Бу охирги саҳифа"})
         }
         let keyboard = await selectService(data.split('=')[1])
-        console.log('keyboard87', keyboard);
         
-        bot.editMessageText( chat_id, msgId, null,"Qaysi turdagi xizmatni ko`rsatasiz").then(data => {
-            bot.editMessageReplyMarkup(chat_id, msgId, null,{inline_keyboard:keyboard})
+        bot.editMessageText( "Qaysi turdagi xizmatni ko`rsatasiz", {
+            chat_id,
+            message_id: msgId,
+            reply_markup: {
+                inline_keyboard: keyboard
+            }
         })
         
 
     } else if(data.split('=')[0]=='next'){
         let keyboard = await selectService(data.split('=')[1])
-        console.log('keyboard97', keyboard);
 
-        await bot.editMessageText( chat_id, msgId, null,"Qaysi turdagi xizmatni ko`rsatasiz" ).then(data => {
-            bot.editMessageReplyMarkup(chat_id, msgId, null,{inline_keyboard:keyboard})
+        bot.editMessageText( "Qaysi turdagi xizmatni ko`rsatasiz", {
+            chat_id,
+            message_id: msgId,
+            reply_markup: {
+                inline_keyboard: keyboard
+            }
+        })
+
+    } else if (data.split('=')[0] == 'next_m'){
+        let keyboard = await selectMaster(data.split('=')[1])
+
+        bot.editMessageText( "Ustalar ro'yhati", {
+            chat_id,
+            message_id: msgId,
+            reply_markup: {
+                inline_keyboard: keyboard
+            }
+        })
+
+    } else if (data.split('=')[0] == 'prev_m'){
+        if (data.split('=')[1] == 0) {
+            return bot.answerCallbackQuery(msg.id,{text: "Бу охирги саҳифа"})
+        }
+        let keyboard = await selectMaster(data.split('=')[1])
+
+        bot.editMessageText( "Ustalar ro'yhati", {
+            chat_id,
+            message_id: msgId,
+            reply_markup: {
+                inline_keyboard: keyboard
+            }
         })
 
     }
@@ -102,7 +126,6 @@ const selectService = async(page = 1) => {
                 count = 1
                 arr.push({ text: el.service_name, callback_data:`${el.id}` })     
             }
-
         });
 
         array.push(arr)
@@ -115,6 +138,24 @@ const selectService = async(page = 1) => {
     }
 }
 
+const selectMaster = async(page = 1) => {
+    try {
+        let services = await prisma.masters.findMany()
+        services = services.slice(+page * 5 - 5, 5 * +page)
+        let array = []
+
+        services.forEach(el => { 
+            array.push([{ text: el.name + ' 🎖'+ el.rating / el.rating_count, callback_data:`${el.id}` }])           
+        });
+
+        array.push([{text: "⏪", callback_data: 'prev_m='+(+page-1)}, {text: '⏩', callback_data: 'next_m='+(+page+1)}])
+
+        return array
+    } catch (error) {
+        console.log(error);
+        return []
+    }
+}
 
 const checkUser = async(data) => {
     try {
@@ -155,10 +196,5 @@ const changeSteep =async (user, steep, steepHome = false) => {
 }
 
 export {
-    changeSteep, app
+    changeSteep
 }
-app.launch();
-
-// Enable graceful stop
-process.once('SIGINT', () => app.stop('SIGINT'));
-process.once('SIGTERM', () => app.stop('SIGTERM'));
