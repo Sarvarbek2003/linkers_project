@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
-const isAdmin = async (user_id) => {
+async function isAdmin (user_id)  {
   try {
     const admin = await prisma.users.findMany({
       where: {
@@ -13,3 +13,4 @@ const isAdmin = async (user_id) => {
     console.log("ERROR: ", e);
   }
 };
+
