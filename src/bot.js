@@ -75,11 +75,9 @@ bot.on("contact", async (msg) => {
       },
     });
   } else if(st == 'phone_number_master'){
-    
-      await prisma.users.updateMany({
-        where: { user_id: chat_id },
-        data: { phone_number: phone_number },
-      });
+      await prisma.users.updateMany({ where: { user_id: chat_id },data: { phone_number: phone_number }});
+      await prisma.masters.updateMany({where:{user_id:chat_id}, data:{phone_number: phone_number}})
+
       bot.sendMessage(chat_id, "Ustaxona nomini kiriting (Bu majburiy emas)", {
         reply_markup:{
             resize_keyboard: true,
@@ -164,6 +162,8 @@ bot.on("callback_query", async (msg) => {
     });
   } else if (steep[1] == 'admin'){
     adminPanel(bot, msg)
+  } else if (steep[1] == "choose-service") {
+    masterRegister(bot, msg);
   }
 });
 
@@ -175,7 +175,12 @@ bot.on('location',async msg => {
   const st = steep[steep?.length - 1];
   if (st == 'location_master') {
     await prisma.masters.updateMany({where:{user_id: chat_id},data:{latitude: `${latitude}`,longtitude:`${longitude}`}})
-    bot.sendMessage(chat_id, "Ishni boshlanish vaqtini kiriting\nNamuna: 09:00")
+    bot.sendMessage(chat_id, "⏰ *Ishni boshlanish vaqtini kiriting\n_Namuna: 09:00_", {
+      reply_markup:{
+        resize_keyboard: true,
+        keyboard: [[{text: '❌ Bekor qilish'}]]
+      }
+    })
     await changeSteep(user, 'start_time')
   }
 
