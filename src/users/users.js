@@ -1,3 +1,3 @@
-export default (ctx) => {
-    
+export const customerRegister = (bot, msg) => {
+    console.log(msg);
 }

@@ -9,6 +9,7 @@ const prisma = new PrismaClient();
 const bot = new TelegramBot(TOKEN, { polling: true });
 
 import adminPanel from "./admin/admin.js";
+import {customerRegister} from "./users/users.js";
 
 bot.on("text", async (msg) => {
   const text = msg.text;
@@ -18,10 +19,8 @@ bot.on("text", async (msg) => {
   const st = steep[steep.length - 1];
 
   if (text == "/start") {
-    bot.sendMessage(
-      chat_id,
-      "Assalomualekum MAISHIY XIZMATLAR uchun yartilgan botimizga hush kelibsiz\nKim bo'lib kirmoqchisiz",
-      {
+    await changeSteep(user, 'home', true)
+    bot.sendMessage( chat_id, "Assalomualekum MAISHIY XIZMATLAR uchun yartilgan botimizga hush kelibsiz\nKim bo'lib kirmoqchisiz",{
         reply_markup: {
           resize_keyboard: true,
           keyboard: [[{ text: "Usta" }, { text: "Mijoz" }]],
@@ -29,9 +28,12 @@ bot.on("text", async (msg) => {
       }
     );
   } else if ((text == "/admin" && user.is_admin) || steep[0] == "admin") {
-    await changeSteep(user, "admin");
+
+    await changeSteep(user, "admin",true);
     await adminPanel(bot, msg);
+
   } else if (text == "Usta") {
+
     await changeSteep(user, "choose-service");
     let keyboard = await selectService();
     bot.sendMessage(chat_id, "Qaysi turdagi xizmatni ko`rsatasiz", {
@@ -39,13 +41,13 @@ bot.on("text", async (msg) => {
         inline_keyboard: keyboard,
       },
     });
-  } else if (text == "Mijoz") {
-    let keyboard = await selectMaster();
-    bot.sendMessage(chat_id, "Ustalar ro`yhati", {
-      reply_markup: {
-        inline_keyboard: keyboard,
-      },
-    });
+
+  } else if (text == "Mijoz" || steep[1] == 'client') {
+
+    await changeSteep(user, "client");
+    await customerRegister(bot, msg)
+
+  } else if(st == 'choose-service'){
   }
 });
 
@@ -102,6 +104,9 @@ bot.on("callback_query", async (msg) => {
         inline_keyboard: keyboard,
       },
     });
+  } else if (st == 'choose-service'){
+    await prisma.masters.create({data: {user_id: chat_id, service_id: data.split('=')}})
+    bot.sendMessage(chat_id, "Ismingizni kiriging")
   }
 });
 
@@ -194,9 +199,14 @@ const checkUser = async (data) => {
 
 const changeSteep = async (user, steep, steepHome = false) => {
   try {
+    let us = await prisma.users.findFirst({where: {user_id: user.user_id}})
+    let st = us.steep[us.steep.length -1]
+
     let steeps = user.steep;
-    steepHome ? (steeps = user.steep) : steeps.push(steep);
-    await prisma.users.update({
+    if (st != steep) steepHome ? steeps = user.steep : steeps.push(steep);
+    else return
+    
+    await prisma.users.updateMany({
       where: {
         user_id: user.user_id,
       },
