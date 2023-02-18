@@ -88,7 +88,7 @@ const selectService = async(page = 1) => {
             array.push([{ text:el.service_name, callback_data:el.id }, {text: el.service_name, callback_data:el.id}])           
         });
 
-        array.push([{text: "⏪ Oldingisi", callback_data: 'prev='+page-1}, {text: '⏩ Keyingisi', callback_data:  'next='+page+1}])
+        array.push([{text: "⏪ Oldingisi", callback_data: 'prev='+page-1}, {text: '⏩ Keyingisi', callback_data:  'next='+page}])
         return {keyboard: array, page}
     } catch (error) {
         console.log(error);
@@ -121,13 +121,13 @@ const checkUser = async(data) => {
 const changeSteep =async (user, steep, steepHome = false) => {
     try {
         
-        let steep = user.steep
-        steepHome ? steep = user.steep : steep.push(steep)
+        let steeps = user.steep
+        steepHome ? steeps = user.steep : steeps.push(steep)
         await prisma.users.update({where: {
                 user_id: user.user_id
             },
             data:{
-                steep
+                steep:steeps
             }
         })
     } catch (error) {

@@ -1,44 +1,49 @@
 import { PrismaClient } from "@prisma/client";
-import { Markup } from "telegraf";
+import { keyboards } from "../keyboards/keyboards.js";
+import { changeSteep } from "../bot.js";
 
 const prisma = new PrismaClient();
 export default async (ctx) => {
   try {
-    console.log(ctx);
-    if (!isAdmin(ctx.from.id)) {
-      await ctx.reply("Bu metod siz uchun emas!❌");
-      return false;
-    }
+    const bot = ctx.telegram;
+    const msg = ctx.message;
+
+    const text = msg.text;
+    const chat_id = msg.from.id;
+    const first_name = msg.from.first_name;
+    const user = await prisma.users.findFirst({
+      where: {
+        user_id: chat_id,
+      },
+    });
     await ctx.reply(
       "Admin Bo'limiga hush kelibsiz!\nKerakli bo'limni tanlang!",
-
+      keyboards.adminHome
     );
+    await changeSteep(user, "masters");
   } catch (e) {
     console.log(e);
   }
 };
 
-async function isAdmin(user_id) {
+async function showMasters(ctx) {
   try {
-    const admin = await prisma.users.findMany({
-      where: {
-        user_id: user_id,
-      },
-    });
-    return admin[0].is_admin;
+    const masters = await prisma.masters.findMany();
+    ctx.reply("Ustalar ro'yhati:\n");
   } catch (e) {
-    console.log("ERROR: ", e);
+    console.log(e);
   }
 }
 
-async function showMasters(ctx) {
+export async function onMaster(ctx) {
+  console.log("Kirdi")
+  await ctx.reply("Ustalar bo'limi", keyboards.on_masters);
+}
+
+
+async function addMaster(ctx) {
   try {
-    if (!isAdmin(ctx.from.id)) {
-      ctx.reply("Bu metod siz uchun emas!❌");
-      return false;
-    } else {
-      const masters = await prisma.masters.findMany();
-      ctx.reply("Ustalar ro'yhati:\n", ...Markup.keyboard([]));
-    }
-  } catch (e) {}
+  } catch (e) {
+    console.log(e);
+  }
 }
