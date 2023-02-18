@@ -13,7 +13,16 @@ const cancel = {
   keyboard: [[{ text: "❌ Bekor qilish" }]],
 }
 
+const homeMaster = {
+  resize_keyboard: true,
+  keyboard: [
+    [{text: '👥 Mijozlar'}, {text: "⏰ Vaqt"}, {text: "🏆 Reyting"}],
+    [{text: '🖋 Ma\'lumotlatni o\'zgartirish'}]
+  ]
+} 
+
 export {
+  homeMaster,
   starthome,
   nextBtn,
   cancel

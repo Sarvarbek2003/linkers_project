@@ -67,6 +67,36 @@ try {
 }
 };
 
+const selectMyCustomer = async (page = 1) => {
+try {
+    let services = await prisma.orders.findMany();
+    services = services.slice(+page * 5 - 5, 5 * +page);
+    let array = [];
+    if(!services.length) return [[]]
+    services.forEach((el) => {
+    array.push([
+        {
+        text: el.name + " 🎖" + el.rating / el.rating_count,
+        callback_data: `${el.id}`,
+        },
+    ]);
+    });
+
+    array.push([
+    { text: "⏪", callback_data: "prev_m=" + (+page - 1) },
+    {
+        text: "⏩",
+        callback_data: "next_m=" + (+page + 1),
+    },
+    ]);
+
+    return array;
+} catch (error) {
+    console.log(error);
+    return [];
+}
+};
+
 const checkUser = async (data) => {
 try {
     const chat_id = data.from.id;
@@ -113,5 +143,6 @@ try {
 };
 
 export {
-    selectService, selectMaster, checkUser, changeSteep
+  selectMyCustomer, selectService, selectMaster, 
+  checkUser, changeSteep
 }
