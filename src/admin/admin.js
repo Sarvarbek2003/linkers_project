@@ -4,6 +4,7 @@ import { Markup } from "telegraf";
 const prisma = new PrismaClient();
 export default async (ctx) => {
   try {
+    console.log(ctx);
     if (!isAdmin(ctx.from.id)) {
       await ctx.reply("Bu metod siz uchun emas!❌");
       return false;
