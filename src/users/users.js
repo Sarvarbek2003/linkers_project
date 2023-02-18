@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { changeSteep } from "../bot.js";
+import { changeSteep } from "../utils.js";
 
 const prisma = new PrismaClient();
 export const customerRegister = async (bot, msg) => {

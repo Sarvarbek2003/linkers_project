@@ -9,14 +9,17 @@ const prisma = new PrismaClient();
 const bot = new TelegramBot(TOKEN, { polling: true });
 
 import adminPanel from "./admin/admin.js";
-import {customerRegister} from "./users/users.js";
+
+import { selectService, selectMaster, checkUser, changeSteep} from "./utils.js";
+import { customerRegister } from "./users/users.js";
 
 bot.on("text", async (msg) => {
   const text = msg.text;
   const chat_id = msg.from.id;
   const user = await checkUser(msg);
+  console.log(user);
   const steep = user.steep;
-  const st = steep[steep.length - 1];
+  const st = steep[steep?.length - 1];
 
   if (text == "/start") {
     await changeSteep(user, 'home', true)
@@ -48,8 +51,10 @@ bot.on("text", async (msg) => {
     await customerRegister(bot, msg)
 
   } else if(st == 'choose-service'){
+    
   }
 });
+
 
 bot.on("callback_query", async (msg) => {
   const chat_id = msg.from.id;
@@ -110,115 +115,3 @@ bot.on("callback_query", async (msg) => {
   }
 });
 
-const selectService = async (page = 1) => {
-  try {
-    let services = await prisma.services.findMany();
-    services = services.slice(+page * 10 - 10, 10 * +page);
-    let array = [];
-    let arr = [];
-    let count = 2;
-    services.forEach((el) => {
-      if (count > 0) {
-        arr.push({ text: el.service_name, callback_data: `${el.id}` });
-        count--;
-      } else {
-        array.push(arr);
-        arr = [];
-        count = 1;
-        arr.push({ text: el.service_name, callback_data: `${el.id}` });
-      }
-    });
-
-    array.push(arr);
-    array.push([
-      { text: "⏪ Oldingisi", callback_data: "prev=" + (+page - 1) },
-      {
-        text: "⏩ Keyingisi",
-        callback_data: "next=" + (+page + 1),
-      },
-    ]);
-
-    return array;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-};
-
-const selectMaster = async (page = 1) => {
-  try {
-    let services = await prisma.masters.findMany();
-    services = services.slice(+page * 5 - 5, 5 * +page);
-    let array = [];
-
-    services.forEach((el) => {
-      array.push([
-        {
-          text: el.name + " 🎖" + el.rating / el.rating_count,
-          callback_data: `${el.id}`,
-        },
-      ]);
-    });
-
-    array.push([
-      { text: "⏪", callback_data: "prev_m=" + (+page - 1) },
-      {
-        text: "⏩",
-        callback_data: "next_m=" + (+page + 1),
-      },
-    ]);
-
-    return array;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-};
-
-const checkUser = async (data) => {
-  try {
-    const chat_id = data.from.id;
-    const user = await prisma.users.findFirst({ where: { user_id: chat_id } });
-
-    if (user) {
-      return user;
-    } else {
-      let user = await prisma.users.create({
-        data: {
-          user_id: chat_id,
-          steep: ["home"],
-        },
-      });
-
-      return user;
-    }
-  } catch (error) {
-    return 0;
-  }
-};
-
-const changeSteep = async (user, steep, steepHome = false) => {
-  try {
-    let us = await prisma.users.findFirst({where: {user_id: user.user_id}})
-    let st = us.steep[us.steep.length -1]
-
-    let steeps = user.steep;
-    if (st != steep) steepHome ? steeps = user.steep : steeps.push(steep);
-    else return
-    
-    await prisma.users.updateMany({
-      where: {
-        user_id: user.user_id,
-      },
-      data: {
-        steep: steeps,
-      },
-    });
-  } catch (error) {
-    return 0;
-  }
-};
-
-export {
-    changeSteep
-}
