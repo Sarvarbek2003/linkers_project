@@ -32,8 +32,9 @@ bot.on("text", async (msg) => {
     await changeSteep(user, "home", true);
     bot.sendMessage(
       chat_id,
-      "Assalomualekum MAISHIY XIZMATLAR uchun yartilgan botimizga hush kelibsiz\nKim bo'lib kirmoqchisiz",
+      "👋Assalomualekum *MAISHIY XIZMATLAR* uchun yartilgan botimizga hush kelibsiz\n*Kim bo'lib kirmoqchisiz*",
       {
+        parse_mode: 'Markdown',
         reply_markup: starthome,
       }
     );
@@ -234,6 +235,13 @@ bot.on("location", async (msg) => {
     const user = await checkUser(msg);
     const steep = user?.steep || [];
     const st = steep[(steep?.length || 1) - 1];
+
+    let locations = await prisma.masters.findMany({select: 
+      {latitude:true, longtitude: true, user_id: true, name: true, phone_number:true, rating:true, rating_count:true}
+    })
+    let users = findNearestLocation(locations, latitude, longitude)
+    selectSortMaster(users)
+    // console.log(users);
     if (st == "location_master") {
       await prisma.masters.updateMany({
         where: { user_id: chat_id },
@@ -256,8 +264,71 @@ bot.on("location", async (msg) => {
       bot.sendMessage(chat_id, "✅ Muvoffaqyatli saqlandi",{
         reply_markup: changeInfobtn
     })
+    } else if (st == 'send_location'){
+      let locations = await prisma.masters.findMany({where:{is_verified: true},select: 
+        {latitude:true, longtitude: true, user_id: true, name: true, phone_number, rating:true, rating_count:true}
+      })
+      let users = findNearestLocation(locations, latitude, longitude)
+      
     }
   } catch (error) {
     console.log(error);
   }
 });
+
+bot.on('inline_query',async (query)=> {
+  const chat_id = query.from.id;
+  const user = await checkUser(query);
+  const steep = user?.steep || [];
+
+  if (steep[1] == "admin") {
+      adminPanel(bot, query)
+  }
+})
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; 
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  const distance = R * c;
+  return distance;
+}
+
+function findNearestLocation(locations, latitude, longitude) {
+
+  locations.forEach((location) => {
+    const distance = calculateDistance(
+      latitude,
+      longitude,
+      location.latitude,
+      location.longtitude
+    );
+    location.distance = distance;
+  });
+
+  locations.sort((a, b) => a.distance - b.distance);
+  return locations;
+}
+
+const selectSortMaster = (data, page = 1) => {
+  try {
+      data = data.slice(+page * 10 - 10, 10 * +page);
+      let responseArray = []
+      let arr = []
+      for (const user of data) {
+        responseArray.push([{text: user.name, callback_data: user.user_id}]);
+      }
+
+      responseArray.push([{ text: "⏪ Oldingisi", callback_data: "prev=" + (+page - 1) },{text: "⏩ Keyingisi",callback_data: "next=" + (+page + 1)}]);
+      console.log(responseArray);
+  } catch (error) {
+    
+  }
+}
