@@ -48,7 +48,7 @@ export const customerRegister = async (bot, msg) => {
   } else if (st === "client_enter_phone_number" && text === "Xizmatlar") {
     const keyboards = await selectService();
     // throw new Error("ER1")
-    await bot.sendMessage(chat_id, "Quyidagi servicelardan birini tanlang!", {
+    await bot.sendMessage(chat_id, "Quyidagi xizmatlardan birini tanlang👇", {
       reply_markup: {
         inline_keyboard: keyboards,
       },
