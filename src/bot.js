@@ -12,10 +12,11 @@ import adminPanel from "./admin/admin.js";
 
 import {
   selectService,
-  selectMaster,
   checkUser,
   changeSteep,
+  selectMaster,
 } from "./utils.js";
+import { mastersData } from "./orders/orders.js";
 import { customerRegister } from "./users/users.js";
 import { masterRegister, works } from "./masters/index.js";
 import { cancel, nextBtn, starthome } from "./keyboards/keyboards.js";
@@ -211,7 +212,7 @@ bot.on("callback_query", async (msg) => {
       reply_markup: cancel,
     });
   } else if (steep[1] == "admin") {
-    adminPanel(bot, msg);
+    await adminPanel(bot, msg);
   } else if (steep[1] == "choose-service" || steep[1] == "workSpace") {
     try {
       let is_master = await prisma.masters.findFirst({
@@ -219,7 +220,12 @@ bot.on("callback_query", async (msg) => {
       });
       is_master ? works(bot, msg) : masterRegister(bot, msg);
     } catch (error) {}
+  } else if (st === "select_service_user" && data !== "user_back_home") {
+    await mastersData(bot, msg);
+  } else if (data === "user_back_home") {
+    await customerRegister(bot, msg);
   }
+  // console.log(steep)
 });
 
 bot.on("location", async (msg) => {
