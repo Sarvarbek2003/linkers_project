@@ -9,23 +9,20 @@ export default async (bot, msg) => {
   try {
     const text = msg?.text || msg?.data || msg?.query;
 
-    // console.log('text',text);
     const user = await checkUser(msg);
     const chat_id = msg.from.id;
     const steep = user.steep;
     const st = steep[steep?.length - 1];
     const msgId = msg?.message?.message_id;
-    // console.log(msg);
-    // console.log('st', st);
-    // console.log('data', text);
 
-    // console.log(msg);
+    const masterByName = /^#mby_name\s(.+)/;
+    const masterByPhone = /^#mby_phone\s(.+)/;
+    const masterByRating = /^#mby_raiting\s(.+)/;
+    const customerByName = /^#cby_name\s(.+)/;
+    const customerByPhone = /^#cby_phone\s(.+)/;
 
-    const byName = /^#by_name\s(.+)/;
-    const byPhone = /^#by_phone\s(.+)/;
-    const byRaiting = /^#by_raiting\s(.+)/;
-    if (byName.test(text)) {
-      const queryText = text.match(byName)[1];
+    if (masterByName.test(text)) {
+      const queryText = text.match(masterByName)[1];
       const masters = await prisma.masters.findMany({
         where: {
           service_id: +user.action['service_id'],
@@ -36,21 +33,22 @@ export default async (bot, msg) => {
       const result = await createMasterContent(masters, user);
 
       bot.answerInlineQuery(msg.id, result);
-    } else if (byPhone.test(text)) {
-      const queryText = text.match(byPhone)[1];
+    } else if (masterByPhone.test(text)) {
+      const queryText = text.match(masterByPhone)[1];
 
       const masters = await prisma.masters.findMany({
         where: {
           service_id: +user.action['service_id'],
+
           phone_number: { contains: queryText },
         },
       });
 
       const result = await createMasterContent(masters, user);
 
-      bot.answerInlineQuery(query.id, result);
-    } else if (byRaiting.test(text)) {
-      const queryText = text.match(byRaiting)[1];
+      bot.answerInlineQuery(msg.id, result);
+    } else if (masterByRating.test(text)) {
+      const queryText = text.match(masterByRating)[1];
 
       let masters = await prisma.masters.findMany({
         where: {
@@ -66,7 +64,115 @@ export default async (bot, msg) => {
 
       const result = await createMasterContent(filteredMasters, user);
 
-      bot.answerInlineQuery(query.id, result);
+      bot.answerInlineQuery(msg.id, result);
+    } else if (customerByName.test(text)) {
+      const queryText = text.match(customerByName)[1];
+
+      let results = [];
+
+      const customer = await prisma.users.findMany({
+        where: {
+          is_customer: { equals: true },
+          is_admin: { equals: false },
+          first_name: { mode: 'insensitive', startsWith: queryText },
+        },
+      });
+
+      customer.forEach((customer) => {
+        const content = {
+          id: `${customer.id}`,
+          type: 'article',
+          title: `${customer.first_name}`,
+          thumb_url:
+            'https://rosstroystandart.ru/images/icon/BuildersLabourer_Icon.png',
+          thumb_width: 50,
+          thumb_height: 50,
+          description: 'descriipton',
+          input_message_content: {
+            message_text: `👤 Ismi: ${
+              customer.first_name
+            }\n☎️ Telefon raqami: ${customer.phone_number}\n Adminmi: ${
+              customer.is_admin ? '✅' : '❌'
+            }\n BAN: ${customer.is_banned ? '✅' : '❌'}\n`,
+
+            parse_mode: 'HTML',
+          },
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: 'BAN qilish',
+                  callback_data: 'customer-ban=' + customer.id,
+                },
+              ],
+              [
+                {
+                  text: 'Xabar yuborish',
+                  callback_data: 'customer-send-msg=' + customer.user_id,
+                },
+              ],
+            ],
+          },
+          hide_url: true,
+        };
+
+        results.push(content);
+      });
+      bot.answerInlineQuery(msg.id, results);
+    } else if (customerByPhone.test(text)) {
+      const queryText = text.match(customerByPhone)[1];
+
+      let results = [];
+
+      const customer = await prisma.users.findMany({
+        where: {
+          is_customer: { equals: true },
+          is_admin: { equals: false },
+          phone_number: { contains: queryText },
+        },
+      });
+
+      customer.forEach((customer) => {
+        const content = {
+          id: `${customer.id}`,
+          type: 'article',
+          title: `${customer.first_name}`,
+          thumb_url:
+            'https://rosstroystandart.ru/images/icon/BuildersLabourer_Icon.png',
+          thumb_width: 50,
+          thumb_height: 50,
+          description: 'descriipton',
+          input_message_content: {
+            message_text: `👤 Ismi: ${
+              customer.first_name
+            }\n☎️ Telefon raqami: ${customer.phone_number}\n Adminmi: ${
+              customer.is_admin ? '✅' : '❌'
+            }\n BAN: ${customer.is_banned ? '✅' : '❌'}\n`,
+
+            parse_mode: 'HTML',
+          },
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: 'BAN qilish',
+                  callback_data: 'customer-ban=' + customer.id,
+                },
+              ],
+              [
+                {
+                  text: 'Xabar yuborish',
+                  callback_data: 'customer-send-msg=' + customer.user_id,
+                },
+              ],
+            ],
+          },
+          hide_url: true,
+        };
+
+        results.push(content);
+      });
+      bot.answerInlineQuery(msg.id, results);
     }
 
     if (st == 'home') {
@@ -121,8 +227,18 @@ export default async (bot, msg) => {
         message_id: msgId,
         reply_markup: {
           inline_keyboard: [
-            [{ text: 'Tahrirlash ✏️', callback_data: 'service-edit=' + text }],
-            [{ text: "O'chirish ❌", callback_data: 'service-delete=' + text }],
+            [
+              {
+                text: 'Tahrirlash ✏️',
+                callback_data: 'service-edit=' + text,
+              },
+            ],
+            [
+              {
+                text: "O'chirish ❌",
+                callback_data: 'service-delete=' + text,
+              },
+            ],
           ],
         },
       });
@@ -140,32 +256,49 @@ export default async (bot, msg) => {
             [
               {
                 text: 'Ism 👤',
-                switch_inline_query_current_chat: '#by_name ',
+                switch_inline_query_current_chat: '#mby_name ',
               },
             ],
             [
               {
                 text: 'Telefon ☎️',
-                switch_inline_query_current_chat: '#by_phone ',
+                switch_inline_query_current_chat: '#mby_phone ',
               },
             ],
             [
               {
                 text: 'Reyting 🏆',
-                switch_inline_query_current_chat: '#by_raiting ',
+                switch_inline_query_current_chat: '#mby_raiting ',
               },
             ],
           ],
         },
       });
     } else if (st == 'admin_customers') {
+      changeSteep(user, 'admin-search-customer');
+
+      await prisma.users.updateMany({
+        where: { user_id: chat_id },
+        data: { action: { service_id: text } },
+      });
+
       bot.editMessageText('Xizmatlar', {
         chat_id,
         message_id: msgId,
         reply_markup: {
           inline_keyboard: [
-            [{ text: 'Ism 👤', callback_data: 'costomer-by-name' }],
-            [{ text: 'Telefon ☎️', callback_data: 'costomer-by-phone' }],
+            [
+              {
+                text: 'Ism 👤',
+                switch_inline_query_current_chat: '#cby_name ',
+              },
+            ],
+            [
+              {
+                text: 'Telefon ☎️',
+                switch_inline_query_current_chat: '#cby_phone ',
+              },
+            ],
           ],
         },
       });
@@ -195,12 +328,13 @@ export default async (bot, msg) => {
     ) {
       const id = +text.split('=')[1];
 
+      console.log(id);
+
       await prisma.masters.update({
-        where: { id },
+        where: { id: id },
         data: { is_verified: false },
       });
 
-      // bot.deleteMessage(chat_id, msg.id);
       bot.sendMessage(chat_id, 'Muvoffaqyatli nofaolashtirildi ✅', {
         reply_markup: adminMenuKeyboard,
       });
@@ -208,10 +342,38 @@ export default async (bot, msg) => {
       st == 'admin-search-master' &&
       text.split('=')[0] == 'master-dismissal'
     ) {
+    } else if (
+      st == 'admin-search-master' &&
+      text.split('=')[0] == 'master-dismissal'
+    ) {
+      const id = +text.split('=')[1];
+
+      await prisma.masters.update({
+        where: { id },
+        data: { is_banned: false },
+      });
+
+      bot.sendMessage(chat_id, 'Muvoffaqyatli bushatildi ✅', {
+        reply_markup: adminMenuKeyboard,
+      });
+    } else if (
+      st == 'admin-search-master' &&
+      text.split('=')[0] == 'customer-ban'
+    ) {
+      const id = +text.split('=')[1];
+
+      await prisma.users.update({
+        where: { id },
+        data: { is_banned: false },
+      });
+
+      bot.sendMessage(chat_id, 'Muvoffaqyatli bushatildi ✅', {
+        reply_markup: adminMenuKeyboard,
+      });
     }
   } catch (e) {
-    // master - dismissal;
     console.log(e);
+    // master-dismissal
   }
 };
 
