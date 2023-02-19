@@ -252,6 +252,15 @@ bot.on("callback_query", async (msg) => {
     await mastersData(bot, msg);
   } else if (data === "user_back_home") {
     await customerRegister(bot, msg);
+  } else if (/user_select_master_location-(\d+)/.test(data)){
+    const id = data.split('-')[1]
+    const readyMaster = await prisma.masters.findFirst({
+      where: {
+        id: +id,
+      }
+    })
+    console.log(readyMaster)
+    await bot.sendLocation(chat_id, readyMaster.latitude, readyMaster.longtitude)
   }
   // console.log(steep)
 });
