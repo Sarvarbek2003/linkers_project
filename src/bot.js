@@ -199,6 +199,34 @@ bot.on("callback_query", async (msg) => {
         inline_keyboard: keyboard,
       },
     });
+  }
+  else if (data.split("=")[0] == "next_lc") {
+    let keyboard = await selectSortMaster(msg, data.split("=")[1]);
+    console.log(keyboard);
+    if (keyboard[0].length == 0) {
+      return bot.answerCallbackQuery(msg.id, { text: "Bu ohirgi sahifa!" });
+    }
+
+    bot.editMessageText("Ustalar ro'yhati", {
+      chat_id,
+      message_id: msgId,
+      reply_markup: {
+        inline_keyboard: keyboard,
+      },
+    });
+  } else if (data.split("=")[0] == "prev_lc") {
+    if (data.split("=")[1] == 0) {
+      return bot.answerCallbackQuery(msg.id, { text: "Bu ohirgi sahifa!" });
+    }
+    let keyboard = await selectSortMaster(msg, data.split("=")[1]);
+
+    bot.editMessageText("Ustalar ro'yhati", {
+      chat_id,
+      message_id: msgId,
+      reply_markup: {
+        inline_keyboard: keyboard,
+      },
+    });
   } else if (st == "choose-service") {
     await changeSteep(user, "master_name");
     try {
@@ -224,6 +252,15 @@ bot.on("callback_query", async (msg) => {
     await mastersData(bot, msg);
   } else if (data === "user_back_home") {
     await customerRegister(bot, msg);
+  } else if (/user_select_master_location-(\d+)/.test(data)){
+    const id = data.split('-')[1]
+    const readyMaster = await prisma.masters.findFirst({
+      where: {
+        id: +id,
+      }
+    })
+    console.log(readyMaster)
+    await bot.sendLocation(chat_id, readyMaster.latitude, readyMaster.longtitude)
   } else if(/user_select_time_master-(\d+)/.test(data)){
     let btns = await changeDate(msg)
     const id = data.split('-')[1]
@@ -254,6 +291,7 @@ bot.on("callback_query", async (msg) => {
       }
     })
   }
+  // console.log(steep)
 });
 
 bot.on("location", async (msg) => {
@@ -276,12 +314,12 @@ bot.on("location", async (msg) => {
         data: { latitude: `${latitude}`, longtitude: `${longitude}` },
       });
       bot.sendMessage(
-          chat_id,
-          "⏰ *Ishni boshlanish vaqtini kiriting*\n_Namuna: 09:00_",
-          {
-            parse_mode: "Markdown",
-            reply_markup: cancel,
-          }
+        chat_id,
+        "⏰ *Ishni boshlanish vaqtini kiriting*\n_Namuna: 09:00_",
+        {
+          parse_mode: "Markdown",
+          reply_markup: cancel,
+        }
       );
       await changeSteep(user, "start_time");
     } else if(st == 'edit_location'){
@@ -293,11 +331,10 @@ bot.on("location", async (msg) => {
         reply_markup: changeInfobtn
       })
     } else if (st == 'send_location'){
-      let locations = await prisma.masters.findMany({where:{is_verified: true},select:
-            {latitude:true, longtitude: true, user_id: true, name: true, phone_number, rating:true, rating_count:true}
-      })
-      let users = findNearestLocation(locations, latitude, longitude)
 
+      await prisma.users.updateMany({where: {user_id: chat_id}, data: {action: {latitude, longitude}}})
+      let btn = await selectSortMaster(msg)
+      bot.sendMessage(chat_id, "📋 *Ustalar ro'yhati*", {parse_mode:'Markdown',reply_markup: {inline_keyboard: btn}})
     }
   } catch (error) {
     console.log(error);
@@ -363,19 +400,25 @@ function findNearestLocation(locations, latitude, longitude) {
   return locations;
 }
 
-const selectSortMaster = (data, page = 1) => {
+const selectSortMaster = async (msg, page = 1) => {
   try {
-    data = data.slice(+page * 10 - 10, 10 * +page);
-    let responseArray = []
-    let arr = []
-    for (const user of data) {
-      responseArray.push([{text: user.name, callback_data: user.user_id}]);
-    }
+      let user = await checkUser(msg)
+      let locations = await prisma.masters.findMany({select:
+        {latitude:true, longtitude: true, user_id: true, name: true, phone_number:true, rating:true, rating_count:true}
+      })
+      let users = findNearestLocation(locations, user.action.latitude, user.action.longitude)
+      let data = users.slice(+page * 10 - 10, 10 * +page);
 
-    responseArray.push([{ text: "⏪ Oldingisi", callback_data: "prev=" + (+page - 1) },{text: "⏩ Keyingisi",callback_data: "next=" + (+page + 1)}]);
-    console.log(responseArray);
+      if (!data.length) return [[]];
+      let responseArray = []
+      for (const user of data) {
+        responseArray.push([{text: user.name, callback_data: parseInt(user.user_id)}]);
+      }
+
+      responseArray.push([{ text: "⏪ Oldingisi", callback_data: "prev=" + (+page - 1) },{text: "⏩ Keyingisi",callback_data: "next=" + (+page + 1)}]);
+      console.log(responseArray);
   } catch (error) {
-
+    
   }
 }
 
