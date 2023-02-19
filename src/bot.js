@@ -109,7 +109,7 @@ bot.on("contact", async (msg) => {
       }
     );
     await changeSteep(user, "workshop_name");
-  }
+  } 
 });
 
 bot.on("callback_query", async (msg) => {
