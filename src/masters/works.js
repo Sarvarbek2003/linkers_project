@@ -57,7 +57,14 @@ export const works = async(bot, msg) => {
                 parse_mode: 'Markdown',
                 reply_markup: chageInfo
             })
-        } else if (st == 'changeDate'){
+        } else if (st == 'edit_number_master'){
+            await prisma.masters.updateMany({
+                where: { user_id: chat_id },
+                data: { phone_number: text },
+            });
+            bot.sendMessage(chat_id, "✅ Muvoffaqyatli saqlandi",)
+        }
+        else if (st == 'changeDate'){
             changeSteep(user, 'changeTime')
             let master = await prisma.masters.findFirst({where:{user_id:chat_id}})
             let oldDateList = Object.keys(master?.ban_time_list)
@@ -220,14 +227,8 @@ const changeInfo = async (data, event) => {
         const chat_id = data.from.id;
         if(event == 'phone') {
             await changeSteep(user, "edit_number_master");
-            bot.sendMessage(chat_id, "<b>Telefon raqam jo'natish</b> 📞\n tugmasi orqali telefon raqamingizni jo'nating!", {
-                parse_mode: "HTML",
-                reply_markup: {
-                    resize_keyboard: true,
-                    keyboard: [
-                        [{ request_contact: true, text: "Telefon raqamni jo'natish 📞" }],
-                    ],
-                },
+            bot.sendMessage(chat_id, "*Telefon raqamingizni yozing*", {
+                parse_mode: "Markdown",
             })
         }
 
