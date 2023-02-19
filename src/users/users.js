@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { changeSteep, checkUser, selectService } from "../utils.js";
+import { cancel } from "../keyboards/keyboards.js";
 
 const prisma = new PrismaClient();
 export const customerRegister = async (bot, msg) => {
@@ -21,7 +22,10 @@ export const customerRegister = async (bot, msg) => {
 
   if (st === "home") {
     await changeSteep(user, "client");
-    await bot.sendMessage(chat_id, "Iltimos ismingizni kiriting👇");
+    console.log("KELDI!");
+    await bot.sendMessage(chat_id, "Iltimos ismingizni kiriting👇", {
+      reply_markup: cancel,
+    });
   } else if (st === "client") {
     await prisma.users.updateMany({
       where: {
@@ -45,7 +49,10 @@ export const customerRegister = async (bot, msg) => {
         },
       }
     );
-  } else if (st === "client_enter_phone_number" && text === "Xizmatlar" || data === "user_back_home") {
+  } else if (
+    (st === "client_enter_phone_number" && text === "Xizmatlar") ||
+    data === "user_back_home"
+  ) {
     const keyboards = await selectService();
     // throw new Error("ER1")
     await bot.sendMessage(chat_id, "Quyidagi xizmatlardan birini tanlang👇", {
@@ -53,6 +60,6 @@ export const customerRegister = async (bot, msg) => {
         inline_keyboard: keyboards,
       },
     });
-    await changeSteep(user, "select_service_user")
+    await changeSteep(user, "select_service_user");
   }
 };
