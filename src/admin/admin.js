@@ -7,68 +7,67 @@ let service_id;
 
 export default async (bot, msg) => {
   try {
-    const text = msg?.text || msg?.data;
+    const text = msg?.text || msg?.data || msg?.query;
+
+    // console.log('text',text);
     const user = await checkUser(msg);
     const chat_id = msg.from.id;
     const steep = user.steep;
     const st = steep[steep?.length - 1];
     const msgId = msg?.message?.message_id;
-
+    // console.log(msg);
     // console.log('st', st);
     // console.log('data', text);
 
     // console.log(msg);
 
-    bot.on('inline_query', async (query) => {
-      const byName = /^#by_name\s(.+)/;
-      const byPhone = /^#by_phone\s(.+)/;
-      const byRaiting = /^#by_raiting\s(.+)/;
-      const text = query.query;
-      if (byName.test(text)) {
-        const queryText = text.match(byName)[1];
-        const masters = await prisma.masters.findMany({
-          where: {
-            service_id: +user.action['service_id'],
-            name: { mode: 'insensitive', startsWith: queryText },
-          },
-        });
+    const byName = /^#by_name\s(.+)/;
+    const byPhone = /^#by_phone\s(.+)/;
+    const byRaiting = /^#by_raiting\s(.+)/;
+    if (byName.test(text)) {
+      const queryText = text.match(byName)[1];
+      const masters = await prisma.masters.findMany({
+        where: {
+          service_id: +user.action['service_id'],
+          name: { mode: 'insensitive', startsWith: queryText },
+        },
+      });
 
-        const result = await createMasterContent(masters, user);
+      const result = await createMasterContent(masters, user);
 
-        bot.answerInlineQuery(query.id, result);
-      } else if (byPhone.test(text)) {
-        const queryText = text.match(byPhone)[1];
+      bot.answerInlineQuery(msg.id, result);
+    } else if (byPhone.test(text)) {
+      const queryText = text.match(byPhone)[1];
 
-        const masters = await prisma.masters.findMany({
-          where: {
-            service_id: +user.action['service_id'],
-            phone_number: { contains: queryText },
-          },
-        });
+      const masters = await prisma.masters.findMany({
+        where: {
+          service_id: +user.action['service_id'],
+          phone_number: { contains: queryText },
+        },
+      });
 
-        const result = await createMasterContent(masters, user);
+      const result = await createMasterContent(masters, user);
 
-        bot.answerInlineQuery(query.id, result);
-      } else if (byRaiting.test(text)) {
-        const queryText = text.match(byRaiting)[1];
+      bot.answerInlineQuery(query.id, result);
+    } else if (byRaiting.test(text)) {
+      const queryText = text.match(byRaiting)[1];
 
-        let masters = await prisma.masters.findMany({
-          where: {
-            service_id: +user.action['service_id'],
-          },
-        });
+      let masters = await prisma.masters.findMany({
+        where: {
+          service_id: +user.action['service_id'],
+        },
+      });
 
-        let filteredMasters = masters.filter((master) => {
-          if (master.rating / master.rating_count >= +queryText) {
-            return master;
-          }
-        });
+      let filteredMasters = masters.filter((master) => {
+        if (master.rating / master.rating_count >= +queryText) {
+          return master;
+        }
+      });
 
-        const result = await createMasterContent(filteredMasters, user);
+      const result = await createMasterContent(filteredMasters, user);
 
-        bot.answerInlineQuery(query.id, result);
-      }
-    });
+      bot.answerInlineQuery(query.id, result);
+    }
 
     if (st == 'home') {
       await changeSteep(user, 'admin');
