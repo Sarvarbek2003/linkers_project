@@ -16,6 +16,7 @@ model users {
   is_banned    Boolean @default(false)
   is_customer  Boolean @default(true)
   is_admin     Boolean @default(false)
+  action       Json?
 }
 
 model masters {

@@ -19,7 +19,6 @@ import {
 import { customerRegister } from "./users/users.js";
 import { masterRegister, works} from "./masters/index.js";
 import { cancel, nextBtn, starthome } from "./keyboards/keyboards.js";
-
 bot.on("text", async (msg) => {
   const text = msg.text;
   const chat_id = msg.from.id;
@@ -106,6 +105,9 @@ bot.on("callback_query", async (msg) => {
   const st = steep[(steep?.length || 1) - 1];
 
   const data = msg.data;
+  if (['notconfirm_admin', 'confirm_admin', 'check'].includes(data.split('=')[0])) {
+    masterRegister(bot, msg)
+  }
   
   if (data.split("=")[0] == "prev") {
     if (data.split("=")[1] == 0) {
@@ -162,7 +164,7 @@ bot.on("callback_query", async (msg) => {
   } else if (st == 'choose-service'){
     await changeSteep(user, "master_name");
     try {
-      await prisma.masters.create({data: {user_id: chat_id, service_id: +data, ban_time_list: []}})
+      await prisma.masters.create({data: {user_id: chat_id, service_id: +data, ban_time_list: {}}})
     } catch (error) { }
     bot.deleteMessage(chat_id, msgId)
     bot.sendMessage(chat_id, "🖌 *Ismingizni kiriging*", {

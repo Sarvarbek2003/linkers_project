@@ -5,6 +5,7 @@ import { cancel, homeMaster, nextBtn, starthome } from "../keyboards/keyboards.j
 const prisma = new PrismaClient();
 export const masterRegister = async(bot, msg) => {
     try {
+        console.log(msg);
         const text = msg?.text || msg?.data;
         const chat_id = msg.from.id;
         const user = await checkUser(msg);
