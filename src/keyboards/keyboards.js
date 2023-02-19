@@ -28,6 +28,12 @@ const homeMaster = {
   ]
 } 
 
+const chageInfo = {
+  inline_keyboard: [
+    
+  ]
+} 
+
 export {
   adminMenuKeyboard,
   homeMaster,
