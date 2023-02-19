@@ -21,10 +21,9 @@ export const works = async(bot, msg) => {
                 reply_markup: homeMaster
             })
         } else if (text == '👥 Mijozlar'){
-            changeSteep(user, 'workSpace')
-
-            bot.sendMessage(chat_id, "📂 *Mijozlar ro'yhati*", {
-                parse_mode: "Markdown",
+            let txt = await myClient(msg)
+            bot.sendMessage(chat_id, "📂 <b>Mijozlar ro'yhati</b>\n"+(txt == '' ? 'bo\'sh':txt), {
+                parse_mode: "HTML",
                 reply_markup: homeMaster
             })
         } else if (text == '⏰ Vaqt'){
@@ -125,11 +124,32 @@ export const works = async(bot, msg) => {
         } else if (text.split('-')[0] == 'edit' && st == 'changeInfo'){
             change_info(bot, msg, text.split('-')[1])
         } else if (edit_steps.includes(st)){
-            console.log("salom");
             edit_Info(bot, msg)
         }
     } catch (error) {   
          console.log('error',error);
+    }
+}
+
+const myClient = async(data) => {
+    try {
+        const chat_id = data.from.id;
+        let clients = await prisma.orders.findMany({
+            where: { AND: {master_id: chat_id, status:'active', time: {gte: new Date().getTime()}} }, 
+            orderBy: [{time:'asc'}]
+        })
+        let txt = ''
+        let index = 1
+        for (const client of clients) {
+            let user = await prisma.users.findFirst({where: {user_id: client.customer_id}})
+            txt += `<b>${index}).</b> 👤<b> Ismi:</b> ${user.first_name}\n📆<b> Sanasi </b>${new Date(parseInt(client.time)).toLocaleString()}\n📞<b> Tel:</b> ${user.phone_number}\n🟰🟰🟰🟰🟰🟰🟰🟰🟰🟰\n`
+            index++
+        }
+        return txt
+        
+    } catch (error) {
+        console.log(error);
+        return ''
     }
 }
 
@@ -283,7 +303,6 @@ const edit_Info = async(bot, msg) => {
         const steep = user?.steep || [];
         const st = steep[(steep?.length || 1) - 1];
         steep.pop()
-        console.log(st);
         await changeSteep(user, steep, true)
         if (st == 'name'){
             await prisma.masters.updateMany({
