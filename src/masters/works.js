@@ -158,7 +158,6 @@ const changeTime = async(data) => {
         const chat_id = data.from.id
         let user = await prisma.masters.findFirst({where: {user_id:chat_id }})
         let master = await prisma.users.findFirst({where: {user_id:chat_id }})
-        console.log(user,  master);
         let start_time_hour = parseInt(user.start_time.split(':')[0])
         let start_time_minute = parseInt(user.start_time.split(':')[1])
         let end_time_hour = parseInt(user.end_time.split(':')[0])
