@@ -45,7 +45,7 @@ export const customerRegister = async (bot, msg) => {
         },
       }
     );
-  } else if (st === "client_enter_phone_number" && text === "Xizmatlar") {
+  } else if (st === "client_enter_phone_number" && text === "Xizmatlar" || data === "user_back_home") {
     const keyboards = await selectService();
     // throw new Error("ER1")
     await bot.sendMessage(chat_id, "Quyidagi xizmatlardan birini tanlang👇", {
@@ -53,5 +53,6 @@ export const customerRegister = async (bot, msg) => {
         inline_keyboard: keyboards,
       },
     });
+    await changeSteep(user, "select_service_user")
   }
 };
