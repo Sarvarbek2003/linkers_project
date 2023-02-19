@@ -1,6 +1,6 @@
 import { changeSteep, checkUser, selectService } from "../utils.js";
 import { PrismaClient } from "@prisma/client";
-import { cancel, homeMaster, nextBtn, starthome } from "../keyboards/keyboards.js";
+import { cancel, chageInfo, homeMaster, nextBtn, starthome } from "../keyboards/keyboards.js";
 
 const prisma = new PrismaClient();
 
@@ -51,8 +51,13 @@ export const works = async(bot, msg) => {
             }
             let txt = stars.join('') + ' ' + reyting
             return bot.sendMessage(chat_id, `*🎖 Sizning darajangiz\n\n🏆 Reyting: ${txt}*`, {parse_mode:'Markdown'})
-        } 
-        else if (st == 'changeDate'){
+        } else if (text == '🖋 Ma\'lumotlatni o\'zgartirish'){
+            changeSteep(user, 'changeInfo')
+            bot.sendMessage(chat_id, "*O'zgartirmochi bo'lgan ma'lumotingizni tanlang*👇",{
+                parse_mode: 'Markdown',
+                reply_markup: chageInfo
+            })
+        } else if (st == 'changeDate'){
             changeSteep(user, 'changeTime')
             let master = await prisma.masters.findFirst({where:{user_id:chat_id}})
             let oldDateList = Object.keys(master?.ban_time_list)
@@ -71,7 +76,7 @@ export const works = async(bot, msg) => {
                     inline_keyboard: btns
                 } 
             })
-        } else if(text == 'changeDate'){
+        } else if (text == 'changeDate'){
             steep.pop()
             let btns = await changeDate(msg)
             await changeSteep(user, steep, true)
@@ -83,8 +88,7 @@ export const works = async(bot, msg) => {
                     inline_keyboard: btns
                 } 
             })
-        }
-        else if (st == 'changeTime') {
+        } else if (st == 'changeTime') {
             let master = await prisma.masters.findFirst({where:{user_id:chat_id}})
             let ban_list = master.ban_time_list
             if(ban_list[user.action.date].includes(text)){
@@ -105,8 +109,9 @@ export const works = async(bot, msg) => {
                     inline_keyboard: btn
                 }
             })
-
-        } 
+        } else if (text.split('-')[0] == 'edit' && st == 'changeInfo'){
+            changeInfo(msg, text.split('-')[0])
+        }
     } catch (error) {   
          console.log('error',error);
     }
@@ -206,6 +211,28 @@ const changeDate = async (data) => {
         return responseArray
     } catch (error) {
         console.log("🚀 ~ file: works.js:149 ~ changeDate ~ error", error)
+        
+    }
+}
+
+const changeInfo = async (data, event) => {
+    try {
+        const chat_id = data.from.id;
+        if(event == 'phone') {
+            await changeSteep(user, "edit_number_master");
+            bot.sendMessage(chat_id, "<b>Telefon raqam jo'natish</b> 📞\n tugmasi orqali telefon raqamingizni jo'nating!", {
+                parse_mode: "HTML",
+                reply_markup: {
+                    resize_keyboard: true,
+                    keyboard: [
+                        [{ request_contact: true, text: "Telefon raqamni jo'natish 📞" }],
+                    ],
+                },
+            })
+        }
+
+
+    } catch (error) {
         
     }
 }
