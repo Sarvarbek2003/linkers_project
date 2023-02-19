@@ -242,6 +242,14 @@ bot.on("location", async (msg) => {
         }
       );
       await changeSteep(user, "start_time");
+    } else if(st == 'edit_location'){
+      await prisma.masters.updateMany({
+        where: { user_id: chat_id },
+        data: { latitude: `${latitude}`, longtitude: `${longitude}` },
+      });
+      bot.sendMessage(chat_id, "✅ Muvoffaqyatli saqlandi",{
+        reply_markup: changeInfobtn
+    })
     }
   } catch (error) {
     console.log(error);
